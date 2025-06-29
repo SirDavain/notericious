@@ -6,6 +6,10 @@ import kotlinx.coroutines.flow.Flow
 // (network, cache, database) from the rest of the app,
 // particularly ViewModels.
 
+/*interface TaskRepositoryInterface {
+
+}*/
+
 class TaskRepository(private val taskDao: TaskDao) {
 
     val allTasks: Flow<List<Task>> = taskDao.getAllTasks()

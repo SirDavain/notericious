@@ -6,11 +6,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MainScreenViewModel(
-    private val taskRepository: TaskRepository
-) : ViewModel() {
-    private val _uiState = MutableStateFlow<MainScreenUiState>(MainScreenUiState())
-    val uiState: StateFlow<MainScreenUiState> = _uiState
+class NotesWritingScreenViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow<NotesWritingScreenUiState>(NotesWritingScreenUiState())
+    val uiState: StateFlow<NotesWritingScreenUiState> = _uiState
 
     fun performSomeAction() {
         viewModelScope.launch {
@@ -20,14 +18,9 @@ class MainScreenViewModel(
             _uiState.value = _uiState.value.copy(isLoading = false, data = "Updated Data")
         }
     }
-    fun workWithTasks() {
-        viewModelScope.launch {
-            taskRepository.insert()
-        }
-    }
 }
 
-data class MainScreenUiState(
+data class NotesWritingScreenUiState(
     val isLoading: Boolean = false,
     val data: String? = null
     // Add other state properties

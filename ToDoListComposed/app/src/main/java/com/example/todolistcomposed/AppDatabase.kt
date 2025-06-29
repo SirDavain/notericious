@@ -33,7 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "task_database" // Name of your database file
+                    "app_database" // Name of your database file
                 )
                     .addMigrations(MIGRATION_1_2)
                     // Wipes and rebuilds instead of migrating if no Migration object.

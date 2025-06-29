@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -62,20 +61,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.todolistcomposed.ui.mainscreen.MainScreen
 import com.example.todolistcomposed.ui.theme.ToDoListComposedTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import androidx.compose.foundation.ExperimentalFoundationApi // <<< THIS is the key import for the feature
-import androidx.compose.foundation.layout.*
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateFloatAsState // For alpha animation
-import androidx.compose.ui.draw.alpha // For applying alpha
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,10 +96,29 @@ class MainActivity : ComponentActivity() {
                                 )
                             ),
                             // Pass a lambda to trigger navigation
-                            onNavigateToNewScreen = {
-                                Log.d("NavHost", "Navigating from ToDo to MainScreen triggered")
+                            /*onNavigateToNewScreen = {
+                                Log.d("NavHost", "Navigating from ToDoScreen to MainScreen triggered")
                                 navController.navigate(NavRoutes.MAIN_SCREEN)
+                            }*/
+                        )
+                    }
+                    /*composable(NavRoutes.NOTES_WRITING_SCREEN) {
+                        NotesWritingScreen(navController = navController)
+                    }*/
+                    composable(
+                        route = NavRoutes.NOTES_WRITING_SCREEN,
+                        arguments = listOf(
+                            navArgument(NavRoutes.NOTES_TITLE_ARG) {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
                             }
+                        )
+                    ) { backStageEntry ->
+                        val title = backStageEntry.arguments?.getString(NavRoutes.NOTES_TITLE_ARG)
+                        NotesWritingScreen(
+                            navController = navController,
+                            optionalTitle = title ?: ""
                         )
                     }
                 }
@@ -114,11 +127,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+//@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ToDoListApp(
     tasksUiState: List<TaskUiState>,
-    taskViewModel: TaskViewModel, // Pass the ViewModel
+    taskViewModel: TaskViewModel,
     modifier: Modifier = Modifier
 ) {
     val currentlyEditingId = taskViewModel.currentlyEditingTaskId
@@ -153,7 +166,7 @@ fun ToDoListApp(
             items(
                 items = tasksUiState,
                 key = { task -> task.id }
-            ) { task -> //change it to taskState?
+            ) { task ->
                 TaskItem(
                     taskState = task,
                     isBeingEdited = task.id == currentlyEditingId,
@@ -161,9 +174,7 @@ fun ToDoListApp(
                     onDoneChange = { newDoneState ->
                         taskViewModel.updateTaskDoneStatus(task.id, newDoneState)
                     },
-                    modifier = Modifier.animateItemPlacement(
-                        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
-                    )
+                    modifier = Modifier.animateItem(),
                     onTextClick = {
                         Log.d("ToDoListApp", "onTextClick for task ID: ${task.id}. currentEditingId before: ${taskViewModel.currentlyEditingTaskId}")
                         if (taskViewModel.currentlyEditingTaskId != null && taskViewModel.currentlyEditingTaskId != task.id) {
@@ -215,16 +226,6 @@ fun TaskItem(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        /* Checkbox(
-            checked = taskState.isDone,
-            onCheckedChange = {
-                Log.d("TaskItemRecomposition", "Task ID: ${taskState.id}, isBeingEdited: $isBeingEdited, currentEditTextValue: $currentEditTextValue")
-                if (isBeingEdited) { // If currently editing this item, commit changes before toggling done
-                    onEditDone()
-                }
-                onDoneChange(it)
-            },
-        )*/
         RadioButton(
             selected = taskState.isDone,
             onClick = {
@@ -281,7 +282,7 @@ fun TaskItem(
                         false
                     },
                 textStyle = LocalTextStyle.current.copy( // Match the Text style
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     color = if (taskState.isDone) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
                             else MaterialTheme.colorScheme.onSurface
                 ),
@@ -370,24 +371,12 @@ fun InputRow(
             shape = CircleShape
         )
         Spacer(modifier = Modifier.width(30.dp))
-        /*OutlinedButton(
-            onClick = onAddTask,
-            modifier = Modifier
-                .defaultMinSize(minWidth = 72.dp, minHeight = 72.dp),
-            shape = CircleShape,
-            border = BorderStroke(width = 1.dp, color = Color.White),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary
-            ),
-        ) {
-            Text("ADD")
-        } */
 
         // I want it to control if we're creating a task or a note
         // i.e. after typing in smth into the input bar, after pressing the FAB it should give
         // you an option to create a task or a note.
         FloatingActionButton(
-            onClick = { onAddTask },
+            onClick = { onAddTask() },
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
 
@@ -395,7 +384,6 @@ fun InputRow(
         ) {
             Log.d("ToDoScreen", "FAB for adding a task clicked!")
             Icon(Icons.Filled.Add, contentDescription = "Add new task or go to new screen")
-            // setRippleColor()
         }
     }
 }
