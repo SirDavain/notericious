@@ -67,6 +67,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.todolistcomposed.ui.mainscreen.MainScreen
+import com.example.todolistcomposed.ui.notes.NotesWritingScreen
 import com.example.todolistcomposed.ui.theme.ToDoListComposedTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

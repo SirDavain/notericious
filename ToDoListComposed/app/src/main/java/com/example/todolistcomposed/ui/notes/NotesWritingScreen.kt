@@ -1,4 +1,4 @@
-package com.example.todolistcomposed
+package com.example.todolistcomposed.ui.notes
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement

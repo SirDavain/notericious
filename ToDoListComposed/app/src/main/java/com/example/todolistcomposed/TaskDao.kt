@@ -44,4 +44,7 @@ interface TaskDao {
     // Keep this or adapt it if you directly update isDone
     @Query("UPDATE tasks SET isDone = :isDone, completedOrReopenedTimestamp = :timestamp WHERE id = :taskId")
     suspend fun updateTaskDoneStatusAndTimestamp(taskId: Int, isDone: Boolean, timestamp: Long)
+
+    /*@Query()
+    suspend fun getAllNotes()*/
 }

@@ -14,6 +14,10 @@ class TaskRepository(private val taskDao: TaskDao) {
 
     val allTasks: Flow<List<Task>> = taskDao.getAllTasks()
 
+    /*suspend fun getAllNotes() {
+        taskDao.getAllNotes()
+    }*/
+
     suspend fun insert(task: Task) {
         taskDao.insertTask(task)
     }

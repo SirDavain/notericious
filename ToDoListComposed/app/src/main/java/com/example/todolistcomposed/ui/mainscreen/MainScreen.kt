@@ -13,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,41 +21,39 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.todolistcomposed.MainScreenViewModel
+import com.example.todolistcomposed.InputRow
 import com.example.todolistcomposed.NavRoutes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     navController: NavController,
-    viewModel: MainScreenViewModel = viewModel()
+    viewModel: MainScreenViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle() // Collect state
+    //val uiState by viewModel.uiState.collectAsStateWithLifecycle() // Collect state
 
-    // ... use uiState in your UI ...
-    // Button(onClick = { viewModel.performSomeAction() }) { Text("Perform Action") }
-    // if (uiState.isLoading) { CircularProgressIndicator() }
-    // Text(uiState.data ?: "No data")
+    val tasks by viewModel.allTasks.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Main Screen") }
             )
         },
-        /*bottomBar = {
+        bottomBar = {
             InputRow(
-                newTaskText = taskViewModel.newTaskText,
-                onNewTaskTextChange = { taskViewModel.onNewTaskTextChange(it) },
+                newTaskText = MainScreenViewModel.newTaskText,
+                onNewTaskTextChange = { MainScreenViewModel.onNewTaskTextChange(it) },
                 onAddTask = {
                     // If a task is being edited, save it before adding a new one
-                    if (taskViewModel.currentlyEditingTaskId != null) {
-                        taskViewModel.saveOrDeleteCurrentEditedTask()
+                    if (MainScreenViewModel.currentlyEditingTaskId != null) {
+                        MainScreenViewModel.saveOrDeleteCurrentEditedTask()
                     }
-                    taskViewModel.insertNewTask()
+                    MainScreenViewModel.insertNewTask()
                     focusManager.clearFocus() // Clear focus from any item being edited
                 }
             )
-        },*/
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier

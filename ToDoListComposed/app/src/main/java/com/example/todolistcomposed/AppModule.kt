@@ -22,7 +22,7 @@ object AppModule {
     fun provideTaskDao(appDatabase: AppDatabase): TaskDao {
         return appDatabase.taskDao()
     }
-    
+
     @Provides
     @Singleton
     fun provideTaskRepository(taskDao: TaskDao): TaskRepository {

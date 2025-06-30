@@ -1,27 +1,32 @@
-package com.example.todolistcomposed
+package com.example.todolistcomposed.ui.mainscreen
 
-import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
+import com.example.todolistcomposed.Task
+import com.example.todolistcomposed.TaskRepository
+import com.example.todolistcomposed.TaskUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-open class TaskViewModel(
-    application: Application, // AndroidViewModel requires Application
-    private val repository: TaskRepository
-) : AndroidViewModel(application) {
+data class TaskUiState(val id: Int, val text: String, val isDone: Boolean)
 
-    open val allTasks: StateFlow<List<TaskUiState>> = repository.allTasks.map { tasks ->
+fun Task.toUiState(): TaskUiState = TaskUiState(id, text, isDone)
+
+@HiltViewModel
+open class MainScreenViewModel @Inject constructor(
+    private val taskRepository: TaskRepository
+) : ViewModel() {
+
+    open val allTasks: StateFlow<List<com.example.todolistcomposed.TaskUiState>> = taskRepository.allTasks.map { tasks ->
         // tasks is List<Task> from DAO (which includes completedOrReopenedTimestamp)
         tasks.map { task ->
             // Map to TaskUiState. The timestamp is used for sorting in DAO,
@@ -56,7 +61,7 @@ open class TaskViewModel(
                     isDone = false,
                     completedOrReopenedTimestamp = currentTime
                 )
-                repository.insert(taskToInsert) // Assuming repository.insert takes a Task object
+                taskRepository.insert(taskToInsert) // Assuming repository.insert takes a Task object
                 newTaskText = ""
             }
         }
@@ -90,13 +95,13 @@ open class TaskViewModel(
 
             // If your repository uses a generic update(task: Task) and you fetch first
             // (More robust as it ensures you're updating the correct full Task object)
-            val originalTaskEntity = repository.getTaskById(taskId) // Assuming repository has getTaskById
+            val originalTaskEntity = taskRepository.getTaskById(taskId) // Assuming repository has getTaskById
             if (originalTaskEntity != null) {
                 val updatedTaskEntity = originalTaskEntity.copy(
                     isDone = newDoneState,
                     completedOrReopenedTimestamp = currentTime
                 )
-                repository.update(updatedTaskEntity)
+                taskRepository.update(updatedTaskEntity)
             } else {
                 Log.e("TaskViewModel", "Task with ID $taskId not found for updating done status.")
             }
@@ -139,56 +144,21 @@ open class TaskViewModel(
         viewModelScope.launch {
             val trimmedText = newText.trim()
             if (trimmedText.isBlank()) {
-                repository.deleteTaskById(taskId)
+                taskRepository.deleteTaskById(taskId)
             } else {
-                val originalTaskEntity = repository.getTaskById(taskId)
+                val originalTaskEntity = taskRepository.getTaskById(taskId)
                 if (originalTaskEntity != null) {
                     // Only update the text. Keep existing isDone and completedOrReopenedTimestamp
                     val updatedTaskEntity = originalTaskEntity.copy(text = trimmedText)
-                    repository.update(updatedTaskEntity)
+                    taskRepository.update(updatedTaskEntity)
                 }
             }
         }
     }
-
-    fun finishEditing() {
-        saveOrDeleteCurrentEditedTask()
-    }
 }
 
-// TaskUiState doesn't necessarily need the timestamp unless you display it.
-// The sorting happens at the DAO/database level.
-data class TaskUiState(
-    val id: Int,
-    val text: String,
-    val isDone: Boolean
+data class MainScreenUiState(
+    val isLoading: Boolean = false,
+    val data: String? = null
+    // Add other state properties
 )
-
-// Factory remains mostly the same, ensure AppDatabase is correctly versioned and has migrations
-class TaskViewModelFactory(
-    private val application: Application, // Changed to Application
-    private val useInMemoryDb: Boolean = false
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TaskViewModel::class.java)) {
-            val db = if (useInMemoryDb) {
-                Room.inMemoryDatabaseBuilder(
-                    application.applicationContext, // Use application context
-                    AppDatabase::class.java // Ensure this is your updated AppDatabase class
-                )
-                    .allowMainThreadQueries() // Only for testing/previews if absolutely needed
-                    .build()
-            } else {
-                // Ensure AppDatabase.getDatabase is using the application context
-                // and has the migration added for the new timestamp column.
-                AppDatabase.getDatabase(application.applicationContext)
-            }
-            val taskDao = db.taskDao()
-            val repository = TaskRepository(taskDao) // Ensure TaskRepository uses this DAO
-
-            @Suppress("UNCHECKED_CAST")
-            return TaskViewModel(application, repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-    }
-}
