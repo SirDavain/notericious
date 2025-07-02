@@ -7,7 +7,9 @@ import androidx.room.PrimaryKey
 data class Task(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val text: String,
+    var title: String = "",
+    var content: String = "",
     val isDone: Boolean = false,
-    var completedOrReopenedTimestamp: Long? = null
+    var completedOrReopenedTimestamp: Long? = null,
+    val isNote: Boolean = false
 )

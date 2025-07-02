@@ -18,8 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.todolistcomposed.InputRow
 import com.example.todolistcomposed.NavRoutes
@@ -42,15 +41,15 @@ fun MainScreen(
         },
         bottomBar = {
             InputRow(
-                newTaskText = MainScreenViewModel.newTaskText,
-                onNewTaskTextChange = { MainScreenViewModel.onNewTaskTextChange(it) },
+                newTaskText = viewModel.newTaskText,
+                onNewTaskTextChange = { viewModel.onNewTaskTextChange(it) },
                 onAddTask = {
                     // If a task is being edited, save it before adding a new one
-                    if (MainScreenViewModel.currentlyEditingTaskId != null) {
-                        MainScreenViewModel.saveOrDeleteCurrentEditedTask()
+                    if (viewModel.currentlyEditingTaskId != null) {
+                        viewModel.saveOrDeleteCurrentEditedTask()
                     }
-                    MainScreenViewModel.insertNewTask()
-                    focusManager.clearFocus() // Clear focus from any item being edited
+                    viewModel.insertNewTask()
+                    //focusManager.clearFocus() // Clear focus from any item being edited
                 }
             )
         },

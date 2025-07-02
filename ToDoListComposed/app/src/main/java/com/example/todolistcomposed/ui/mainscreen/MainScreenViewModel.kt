@@ -1,5 +1,6 @@
 package com.example.todolistcomposed.ui.mainscreen
 
+import android.R.attr.text
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,18 +27,13 @@ open class MainScreenViewModel @Inject constructor(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
 
-    open val allTasks: StateFlow<List<com.example.todolistcomposed.TaskUiState>> = taskRepository.allTasks.map { tasks ->
-        // tasks is List<Task> from DAO (which includes completedOrReopenedTimestamp)
-        tasks.map { task ->
-            // Map to TaskUiState. The timestamp is used for sorting in DAO,
-            // not necessarily needed in TaskUiState unless you display it.
-            TaskUiState(task.id, task.text, task.isDone)
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000L),
-        initialValue = emptyList()
-    )
+    open val allTasks: StateFlow<List<com.example.todolistcomposed.TaskUiState>> = taskRepository.allTasks
+        .map { domainTasks -> domainTasks.map { it.toUiState() } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyList()
+        )
 
     open var newTaskText by mutableStateOf("")
     open var currentlyEditingTaskId by mutableStateOf<Int?>(null)
@@ -57,7 +53,7 @@ open class MainScreenViewModel @Inject constructor(
                 // bottom of the "undone" list due to `completedOrReopenedTimestamp ASC`
                 // for undone items in the DAO query.
                 val taskToInsert = Task(
-                    text = text,
+                    content = text,
                     isDone = false,
                     completedOrReopenedTimestamp = currentTime
                 )

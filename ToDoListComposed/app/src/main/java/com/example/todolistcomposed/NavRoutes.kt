@@ -6,7 +6,6 @@ object NavRoutes {
     const val NOTES_WRITING_SCREEN_ROUTE = "notesWritingScreen"
     const val NOTES_TITLE_ARG = "noteTitle"
 
-    // Use query param style
     const val NOTES_WRITING_SCREEN = "$NOTES_WRITING_SCREEN_ROUTE?$NOTES_TITLE_ARG={$NOTES_TITLE_ARG}"
 
     // URL encode the title so it can contain special characters like '/'

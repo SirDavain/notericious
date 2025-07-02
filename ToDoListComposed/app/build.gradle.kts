@@ -1,3 +1,6 @@
+//import androidx.glance.appwidget.compose
+//import androidx.navigation.compose.navigation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -70,6 +73,7 @@ dependencies {
     implementation(libs.androidx.material3.v121)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.android.compiler)
 
     val roomVersion = "2.7.1"

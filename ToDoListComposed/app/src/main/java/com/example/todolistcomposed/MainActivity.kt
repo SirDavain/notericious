@@ -144,16 +144,16 @@ fun ToDoListApp(
 
     Column(modifier = modifier
         .clickable(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = null // No visual indication for this background click
-    ) {
-        // If a task is being edited, clicking outside saves and clears focus
-        Log.d("ToDoListApp", "Outer Column clicked. currentlyEditingId: $currentlyEditingId") // Add this log
-        if (currentlyEditingId != null) {
-            Log.d("ToDoListApp", "Outer Column click - calling saveOrDeleteCurrentEditedTask")
-            taskViewModel.saveOrDeleteCurrentEditedTask() // This will also clear currentlyEditingTaskId
-        }
-        focusManager.clearFocus() // Clear focus from any TextField
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null // No visual indication for this background click
+        ) {
+            // If a task is being edited, clicking outside saves and clears focus
+            Log.d("ToDoListApp", "Outer Column clicked. currentlyEditingId: $currentlyEditingId") // Add this log
+            if (currentlyEditingId != null) {
+                Log.d("ToDoListApp", "Outer Column click - calling saveOrDeleteCurrentEditedTask")
+                taskViewModel.saveOrDeleteCurrentEditedTask() // This will also clear currentlyEditingTaskId
+            }
+            focusManager.clearFocus() // Clear focus from any TextField
     }) {
         LazyColumn(
             modifier = Modifier
