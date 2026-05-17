@@ -128,7 +128,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ToDoListApp(
     tasksUiState: List<TaskUiState>,
@@ -374,7 +373,7 @@ fun InputRow(
         Spacer(modifier = Modifier.width(30.dp))
 
         // I want it to control if we're creating a task or a note
-        // i.e. after typing in smth into the input bar, after pressing the FAB it should give
+        // i.e. after typing smth into the input bar and pressing the FAB it should give
         // you an option to create a task or a note.
         FloatingActionButton(
             onClick = { onAddTask() },

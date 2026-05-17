@@ -2,14 +2,6 @@ package com.example.todolistcomposed
 
 import kotlinx.coroutines.flow.Flow
 
-// A Repository class abstracts data sources
-// (network, cache, database) from the rest of the app,
-// particularly ViewModels.
-
-/*interface TaskRepositoryInterface {
-
-}*/
-
 class TaskRepository(private val taskDao: TaskDao) {
 
     val allTasks: Flow<List<Task>> = taskDao.getAllTasks()

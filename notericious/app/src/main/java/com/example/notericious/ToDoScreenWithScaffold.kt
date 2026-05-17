@@ -67,15 +67,7 @@ fun ToDoScreenWithScaffold(
                     focusManager.clearFocus() // Clear focus from any item being edited
                 }
             )
-        },
-        /*floatingActionButton = {
-            if (onNavigateToNewScreen != null) {
-                FloatingActionButton(onClick = onNavigateToNewScreen) {
-                    Log.d("ToDoScreen", "FAB clicked!")
-                    Icon(Icons.Filled.Add, contentDescription = "Add new task or go to new screen")
-                }
-            }
-        }*/
+        }
     ) { innerPadding ->
         ToDoListApp(
             modifier = Modifier.padding(innerPadding),

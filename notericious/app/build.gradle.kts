@@ -1,6 +1,3 @@
-//import androidx.glance.appwidget.compose
-//import androidx.navigation.compose.navigation
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.todolistcomposed"
+    namespace = "com.example.notericious"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.todolistcomposed"
+        applicationId = "com.example.notericious"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -24,7 +21,7 @@ android {
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += mapOf(
-                    "room.schemaLocation" to "$projectDir/schemas".toString()
+                    "room.schemaLocation" to "$projectDir/schemas"
                 )
             }
         }
@@ -75,6 +72,10 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.android.compiler)
+
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
     val roomVersion = "2.7.1"
     val lifecycleVersion = "2.7.0"
