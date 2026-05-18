@@ -1,4 +1,4 @@
-package com.example.todolistcomposed.ui.theme
+package com.example.notericious.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -74,7 +74,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun ToDoListComposedTheme(
+fun NotericiousTheme(
     darkTheme: Boolean = true,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit

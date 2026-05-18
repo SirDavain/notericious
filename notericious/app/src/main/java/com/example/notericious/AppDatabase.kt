@@ -1,4 +1,4 @@
-package com.example.todolistcomposed
+package com.example.notericious
 
 import android.content.Context
 import androidx.room.Database

@@ -1,11 +1,11 @@
-package com.example.todolistcomposed.ui.notes
+package com.example.notericious.ui.notes
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.todolistcomposed.Task
-import com.example.todolistcomposed.TaskRepository
+import com.example.notericious.Task
+import com.example.notericious.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

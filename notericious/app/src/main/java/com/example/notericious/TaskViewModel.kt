@@ -1,4 +1,4 @@
-package com.example.todolistcomposed
+package com.example.notericious
 
 import android.app.Application
 import android.util.Log
@@ -26,7 +26,7 @@ open class TaskViewModel(
         tasks.map { task ->
             // Map to TaskUiState. The timestamp is used for sorting in DAO,
             // not necessarily needed in TaskUiState unless you display it.
-            TaskUiState(task.id, task.text, task.isDone)
+            TaskUiState(task.id, task.title, task.isDone)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -52,7 +52,7 @@ open class TaskViewModel(
                 // bottom of the "undone" list due to `completedOrReopenedTimestamp ASC`
                 // for undone items in the DAO query.
                 val taskToInsert = Task(
-                    text = text,
+                    title = text,
                     isDone = false,
                     completedOrReopenedTimestamp = currentTime
                 )
@@ -79,8 +79,6 @@ open class TaskViewModel(
                 currentEditText = ""
             }
         }
-
-
         viewModelScope.launch {
             val currentTime = System.currentTimeMillis()
             // Call the repository method that updates both isDone and the timestamp
@@ -144,8 +142,16 @@ open class TaskViewModel(
                 val originalTaskEntity = repository.getTaskById(taskId)
                 if (originalTaskEntity != null) {
                     // Only update the text. Keep existing isDone and completedOrReopenedTimestamp
-                    val updatedTaskEntity = originalTaskEntity.copy(text = trimmedText)
+                    val updatedTaskEntity = originalTaskEntity.copy(title = trimmedText)
                     repository.update(updatedTaskEntity)
+                    // You'll need to decide how to map Task to Note for syncing
+                    val updatedNote = Note(
+                        id = updatedTaskEntity.id,
+                        user_id = "user123", // Replace with actual user ID logic
+                        title = updatedTaskEntity.title,
+                        content = updatedTaskEntity.content
+                    )
+                    RetrofitClient.instance.saveNote(updatedNote)
                 }
             }
         }
@@ -153,6 +159,25 @@ open class TaskViewModel(
 
     fun finishEditing() {
         saveOrDeleteCurrentEditedTask()
+    }
+
+    fun fetchTasksFromServer() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.instance.getNotes()
+                if (response.isSuccessful && response.body() != null) {
+                    val serverNotes = response.body()!!
+                    Log.d("SyncSuccess", "Fetched ${serverNotes.size} notes from server!")
+
+                    // TODO: Loop through serverNotes and insert/update your local Room database
+                    // e.g., serverNotes.forEach { repository.insertTask(it.toTask()) }
+                } else {
+                    Log.e("SyncError", "Server error code: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("SyncError", "Failed to connect to Node.js backend", e)
+            }
+        }
     }
 }
 

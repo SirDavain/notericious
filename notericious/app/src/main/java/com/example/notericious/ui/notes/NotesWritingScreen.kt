@@ -1,4 +1,4 @@
-package com.example.todolistcomposed.ui.notes
+package com.example.notericious.ui.notes
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +39,7 @@ fun NotesWritingScreen(
                         Log.d("optionalTitle","Optional title is $optionalTitle")
                     }
                     else
-                        Text("Title of my note")
+                        Text("Title of this note")
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -63,9 +63,9 @@ fun NotesWritingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("This could be your note")
+            Text("Start writing your note here")
             Spacer(modifier = Modifier.height(16.dp))
-            // Add other UI elements
+            // Other UI elements
         }
     }
 }

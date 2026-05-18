@@ -1,4 +1,4 @@
-package com.example.todolistcomposed
+package com.example.notericious
 
 object NavRoutes {
     const val TODO_LIST_SCREEN = "todoListScreen"

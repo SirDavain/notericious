@@ -1,4 +1,4 @@
-package com.example.todolistcomposed.ui.theme // Ensure this matches your package
+package com.example.notericious.ui.theme // Ensure this matches your package
 
 import androidx.compose.ui.graphics.Color
 

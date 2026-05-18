@@ -1,4 +1,4 @@
-package com.example.todolistcomposed
+package com.example.notericious
 
 import android.app.Application
 import android.os.Bundle
@@ -66,9 +66,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.todolistcomposed.ui.mainscreen.MainScreen
-import com.example.todolistcomposed.ui.notes.NotesWritingScreen
-import com.example.todolistcomposed.ui.theme.ToDoListComposedTheme
+import com.example.notericious.ui.mainscreen.MainScreen
+import com.example.notericious.ui.notes.NotesWritingScreen
+import com.example.notericious.ui.theme.NotericiousTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ToDoListComposedTheme {
+            NotericiousTheme {
                 val navController = rememberNavController()
 
                 NavHost(
@@ -103,9 +103,6 @@ class MainActivity : ComponentActivity() {
                             }*/
                         )
                     }
-                    /*composable(NavRoutes.NOTES_WRITING_SCREEN) {
-                        NotesWritingScreen(navController = navController)
-                    }*/
                     composable(
                         route = NavRoutes.NOTES_WRITING_SCREEN,
                         arguments = listOf(
@@ -129,7 +126,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ToDoListApp(
+fun NotericiousApp(
     tasksUiState: List<TaskUiState>,
     taskViewModel: TaskViewModel,
     modifier: Modifier = Modifier
@@ -137,7 +134,7 @@ fun ToDoListApp(
     val currentlyEditingId = taskViewModel.currentlyEditingTaskId
     val currentEditText = taskViewModel.currentEditText
 
-    Log.d("ToDoListAppRecomp", "Recomposing. currentlyEditingId: $currentlyEditingId, currentEditText: '$currentEditText'")
+    Log.d("NotericiousAppRecomp", "Recomposing. currentlyEditingId: $currentlyEditingId, currentEditText: '$currentEditText'")
     // This makes the whole list area clickable to clear focus from an editing item
     val focusManager = LocalFocusManager.current
 
@@ -147,9 +144,9 @@ fun ToDoListApp(
             indication = null // No visual indication for this background click
         ) {
             // If a task is being edited, clicking outside saves and clears focus
-            Log.d("ToDoListApp", "Outer Column clicked. currentlyEditingId: $currentlyEditingId") // Add this log
+            Log.d("NotericiousApp", "Outer Column clicked. currentlyEditingId: $currentlyEditingId") // Add this log
             if (currentlyEditingId != null) {
-                Log.d("ToDoListApp", "Outer Column click - calling saveOrDeleteCurrentEditedTask")
+                Log.d("NotericiousApp", "Outer Column click - calling saveOrDeleteCurrentEditedTask")
                 taskViewModel.saveOrDeleteCurrentEditedTask() // This will also clear currentlyEditingTaskId
             }
             focusManager.clearFocus() // Clear focus from any TextField
@@ -176,13 +173,13 @@ fun ToDoListApp(
                     },
                     modifier = Modifier.animateItem(),
                     onTextClick = {
-                        Log.d("ToDoListApp", "onTextClick for task ID: ${task.id}. currentEditingId before: ${taskViewModel.currentlyEditingTaskId}")
+                        Log.d("NotericiousApp", "onTextClick for task ID: ${task.id}. currentEditingId before: ${taskViewModel.currentlyEditingTaskId}")
                         if (taskViewModel.currentlyEditingTaskId != null && taskViewModel.currentlyEditingTaskId != task.id) {
-                            Log.d("ToDoListApp", "Saving previously edited task: ${taskViewModel.currentlyEditingTaskId}")
+                            Log.d("NotericiousApp", "Saving previously edited task: ${taskViewModel.currentlyEditingTaskId}")
                             taskViewModel.saveOrDeleteCurrentEditedTask()
                         }
                         taskViewModel.startEditingTask(task)
-                        Log.d("ToDoListApp", "onTextClick - currentEditingId after startEditingTask: ${taskViewModel.currentlyEditingTaskId}")
+                        Log.d("NotericiousApp", "onTextClick - currentEditingId after startEditingTask: ${taskViewModel.currentlyEditingTaskId}")
                     },
                     onEditTextChange = { newText ->
                         taskViewModel.onCurrentEditTextChange(newText)
@@ -390,8 +387,8 @@ fun InputRow(
 
 @Preview(showBackground = true)
 @Composable
-fun TodoListPreview() {
-    ToDoListComposedTheme(darkTheme = true) {
+fun NotericiousPreview() {
+    NotericiousTheme(darkTheme = true) {
         // Approach 3: Simplest for UI preview if ViewModel is complex - Pass fake data directly
         val sampleTasks = listOf(
             TaskUiState(1, "Buy groceries", false),
@@ -419,7 +416,7 @@ fun TodoListPreview() {
                 InputRow(newTaskText = "New preview task", onNewTaskTextChange = {}, onAddTask = {})
             }
         ) { paddingValues ->
-            ToDoListApp(
+            NotericiousApp(
                 tasksUiState = sampleTasks, // If allTasks in dummy VM is just this static list for preview
                 // Or collectAsStateWithLifecycle from the remembered MutableStateFlow
                 taskViewModel = remember { // Remember the entire anonymous ViewModel object
@@ -484,11 +481,11 @@ fun TodoListPreview() {
 class FakeTaskDaoForPreview : TaskDao {
     override fun getAllTasks(): Flow<List<Task>> = MutableStateFlow(emptyList())
 
-    override suspend fun insertTask(task: com.example.todolistcomposed.Task) {
+    override suspend fun insertTask(task: com.example.notericious.Task) {
         // No-op for preview
     }
 
-    override suspend fun updateTask(task: com.example.todolistcomposed.Task) {
+    override suspend fun updateTask(task: com.example.notericious.Task) {
         // No-op for preview
     }
 
@@ -499,6 +496,6 @@ class FakeTaskDaoForPreview : TaskDao {
         // For now, doing nothing is fine.
     }
 
-    override suspend fun getTaskById(taskId: Int): com.example.todolistcomposed.Task? = null
+    override suspend fun getTaskById(taskId: Int): com.example.notericious.Task? = null
     override suspend fun deleteTaskById(taskId: Int) { /* No-op */ }
 }

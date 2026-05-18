@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.example.notericious"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.notericious"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -74,8 +74,8 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     // Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
     val roomVersion = "2.7.1"
     val lifecycleVersion = "2.7.0"

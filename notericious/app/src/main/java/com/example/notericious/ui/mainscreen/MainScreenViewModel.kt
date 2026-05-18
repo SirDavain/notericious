@@ -1,15 +1,14 @@
-package com.example.todolistcomposed.ui.mainscreen
+package com.example.notericious.ui.mainscreen
 
-import android.R.attr.text
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.todolistcomposed.Task
-import com.example.todolistcomposed.TaskRepository
-import com.example.todolistcomposed.TaskUiState
+import com.example.notericious.Task
+import com.example.notericious.TaskRepository
+import com.example.notericious.TaskUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,16 +17,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class TaskUiState(val id: Int, val text: String, val isDone: Boolean)
-
-fun Task.toUiState(): TaskUiState = TaskUiState(id, text, isDone)
+fun Task.toUiState(): TaskUiState = TaskUiState(id, title, isDone)
 
 @HiltViewModel
 open class MainScreenViewModel @Inject constructor(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
 
-    open val allTasks: StateFlow<List<com.example.todolistcomposed.TaskUiState>> = taskRepository.allTasks
+    open val allTasks: StateFlow<List<com.example.notericious.TaskUiState>> = taskRepository.allTasks
         .map { domainTasks -> domainTasks.map { it.toUiState() } }
         .stateIn(
             scope = viewModelScope,
@@ -53,7 +50,7 @@ open class MainScreenViewModel @Inject constructor(
                 // bottom of the "undone" list due to `completedOrReopenedTimestamp ASC`
                 // for undone items in the DAO query.
                 val taskToInsert = Task(
-                    content = text,
+                    title = text,
                     isDone = false,
                     completedOrReopenedTimestamp = currentTime
                 )
@@ -145,7 +142,7 @@ open class MainScreenViewModel @Inject constructor(
                 val originalTaskEntity = taskRepository.getTaskById(taskId)
                 if (originalTaskEntity != null) {
                     // Only update the text. Keep existing isDone and completedOrReopenedTimestamp
-                    val updatedTaskEntity = originalTaskEntity.copy(text = trimmedText)
+                    val updatedTaskEntity = originalTaskEntity.copy(title = trimmedText)
                     taskRepository.update(updatedTaskEntity)
                 }
             }

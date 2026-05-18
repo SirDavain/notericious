@@ -1,4 +1,4 @@
-package com.example.todolistcomposed
+package com.example.notericious
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

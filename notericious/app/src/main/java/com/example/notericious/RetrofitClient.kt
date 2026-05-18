@@ -1,8 +1,10 @@
+package com.example.notericious
+
 import retrofit2.Retrofit
-import retrofit2.converter.gson:GsonConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    // 10.0.2.2 routes directly to your computer's localhost:3000
+    // 10.0.2.2 routes directly to the computer's localhost:3000
     private const val BASE_URL = "http://10.0.2.2:3000/"
 
     val instance: NoteApiService by lazy {

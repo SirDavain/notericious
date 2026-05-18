@@ -1,4 +1,4 @@
-package com.example.todolistcomposed
+package com.example.notericious
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

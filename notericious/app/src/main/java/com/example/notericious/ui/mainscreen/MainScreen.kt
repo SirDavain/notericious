@@ -1,4 +1,4 @@
-package com.example.todolistcomposed.ui.mainscreen
+package com.example.notericious.ui.mainscreen
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -20,8 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.todolistcomposed.InputRow
-import com.example.todolistcomposed.NavRoutes
+import com.example.notericious.InputRow
+import com.example.notericious.NavRoutes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

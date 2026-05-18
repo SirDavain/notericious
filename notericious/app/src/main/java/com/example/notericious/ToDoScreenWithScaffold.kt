@@ -1,4 +1,4 @@
-package com.example.todolistcomposed
+package com.example.notericious
 
 import android.app.Application
 import android.util.Log
@@ -13,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,6 +36,11 @@ fun ToDoScreenWithScaffold(
 ) {
     val tasksUiState by taskViewModel.allTasks.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+
+    // TRIGGER NETWORK SYNC ON INITIAL LOAD HERE
+    LaunchedEffect(Unit) {
+        taskViewModel.fetchTasksFromServer()
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -69,7 +75,7 @@ fun ToDoScreenWithScaffold(
             )
         }
     ) { innerPadding ->
-        ToDoListApp(
+        NotericiousApp(
             modifier = Modifier.padding(innerPadding),
             tasksUiState = tasksUiState,
             taskViewModel = taskViewModel
