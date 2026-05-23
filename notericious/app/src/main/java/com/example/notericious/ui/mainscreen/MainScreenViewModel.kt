@@ -10,23 +10,30 @@ import com.example.notericious.Task
 import com.example.notericious.TaskRepository
 import com.example.notericious.TaskUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-fun Task.toUiState(): TaskUiState = TaskUiState(id, title, isDone, isNote)
+fun Task.toUiState(isSelected: Boolean = false): TaskUiState = 
+    TaskUiState(id, title, isDone, isNote, isSelected)
 
 @HiltViewModel
 open class MainScreenViewModel @Inject constructor(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
 
-    open val allTasks: StateFlow<List<com.example.notericious.TaskUiState>> = taskRepository.allTasks
-        .map { domainTasks -> domainTasks.map { it.toUiState() } }
-        .stateIn(
+    private val selectedIds = MutableStateFlow<Set<Int>>(emptySet())
+    val selectedTaskIds: StateFlow<Set<Int>> = selectedIds
+
+    open val allTasks: StateFlow<List<com.example.notericious.TaskUiState>> = 
+        combine(taskRepository.allTasks, selectedIds) { domainTasks, selected ->
+            domainTasks.map { it.toUiState(isSelected = selected.contains(it.id)) }
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = emptyList()
@@ -35,6 +42,29 @@ open class MainScreenViewModel @Inject constructor(
     open var newTaskText by mutableStateOf("")
     open var currentlyEditingTaskId by mutableStateOf<Int?>(null)
     open var currentEditText by mutableStateOf("")
+
+    fun toggleSelection(taskId: Int) {
+        val current = selectedIds.value
+        if (current.contains(taskId)) {
+            selectedIds.value = current - taskId
+        } else {
+            selectedIds.value = current + taskId
+        }
+    }
+
+    fun clearSelection() {
+        selectedIds.value = emptySet()
+    }
+
+    fun deleteSelectedTasks() {
+        val idsToDelete = selectedIds.value
+        viewModelScope.launch {
+            idsToDelete.forEach { id ->
+                taskRepository.deleteTaskById(id)
+            }
+            clearSelection()
+        }
+    }
 
     open fun onNewTaskTextChange(newText: String) {
         newTaskText = newText

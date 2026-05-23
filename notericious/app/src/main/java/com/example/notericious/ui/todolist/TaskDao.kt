@@ -33,7 +33,7 @@ interface TaskDao {
     suspend fun getTaskById(taskId: Int): Task?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertTask(task: Task)
+    suspend fun insertTask(task: Task): Long
 
     @Update
     suspend fun updateTask(task: Task)

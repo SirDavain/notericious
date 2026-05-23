@@ -191,7 +191,8 @@ data class TaskUiState(
     val id: Int,
     val text: String,
     val isDone: Boolean,
-    val isNote: Boolean = false
+    val isNote: Boolean = true,
+    val isSelected: Boolean = false
 )
 
 // Factory remains mostly the same, ensure AppDatabase is correctly versioned and has migrations

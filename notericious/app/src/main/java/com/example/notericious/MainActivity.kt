@@ -521,9 +521,7 @@ fun NotericiousPreview() {
 class FakeTaskDaoForPreview : TaskDao {
     override fun getAllTasks(): Flow<List<Task>> = MutableStateFlow(emptyList())
 
-    override suspend fun insertTask(task: com.example.notericious.Task) {
-        // No-op for preview
-    }
+    override suspend fun insertTask(task: com.example.notericious.Task): Long = 0L
 
     override suspend fun updateTask(task: com.example.notericious.Task) {
         // No-op for preview

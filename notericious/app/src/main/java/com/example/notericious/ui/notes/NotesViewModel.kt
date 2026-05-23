@@ -59,7 +59,8 @@ class NotesViewModel @Inject constructor(
             _currentNote.value = updatedNote
             viewModelScope.launch {
                 if (updatedNote.id == 0) {
-                    taskRepository.insert(updatedNote)
+                    val newId = taskRepository.insert(updatedNote)
+                    _currentNote.value = updatedNote.copy(id = newId.toInt())
                 } else {
                     taskRepository.update(updatedNote)
                 }
@@ -74,7 +75,8 @@ class NotesViewModel @Inject constructor(
             _currentNote.value = updatedNote
             viewModelScope.launch {
                 if (updatedNote.id == 0) {
-                    taskRepository.insert(updatedNote)
+                    val newId = taskRepository.insert(updatedNote)
+                    _currentNote.value = updatedNote.copy(id = newId.toInt())
                 } else {
                     taskRepository.update(updatedNote)
                 }

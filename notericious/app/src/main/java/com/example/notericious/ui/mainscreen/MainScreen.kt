@@ -10,6 +10,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -44,17 +51,28 @@ fun MainScreen(
     viewModel: MainScreenViewModel = hiltViewModel()
 ) {
     val tasks by viewModel.allTasks.collectAsState()
+    val selectedIds by viewModel.selectedTaskIds.collectAsState()
 
     MainScreenContent(
         tasks = tasks,
+        selectedCount = selectedIds.size,
+        onDeleteSelected = { viewModel.deleteSelectedTasks() },
+        onClearSelection = { viewModel.clearSelection() },
         newTaskText = viewModel.newTaskText,
         onNewTaskTextChange = { viewModel.onNewTaskTextChange(it) },
         onTaskClick = { task ->
-            if (task.isNote) {
-                navController.navigate(NavRoutes.notesWritingScreenWithOptionalTitle(task.text))
+            if (selectedIds.isNotEmpty()) {
+                viewModel.toggleSelection(task.id)
             } else {
-                navController.navigate(NavRoutes.TODO_LIST_SCREEN)
+                if (task.isNote) {
+                    navController.navigate(NavRoutes.notesWritingScreenWithOptionalTitle(task.text))
+                } else {
+                    navController.navigate(NavRoutes.TODO_LIST_SCREEN)
+                }
             }
+        },
+        onTaskLongClick = { task ->
+            viewModel.toggleSelection(task.id)
         },
         onNewListClick = { 
             if (viewModel.newTaskText.isNotBlank()) {
@@ -64,11 +82,10 @@ fun MainScreen(
             }
         },
         onNewNoteClick = { 
-            if (viewModel.newTaskText.isNotBlank()) {
-                viewModel.insertNewTask(isNote = true)
-            } else {
-                navController.navigate(NavRoutes.notesWritingScreenWithOptionalTitle(null))
-            }
+            // Just navigate to the writing screen with the optional title
+            // Let NotesViewModel handle the actual insertion upon first edit
+            navController.navigate(NavRoutes.notesWritingScreenWithOptionalTitle(viewModel.newTaskText.ifBlank { null }))
+            viewModel.onNewTaskTextChange("") // Clear the input field
         }
     )
 }
@@ -77,30 +94,54 @@ fun MainScreen(
 @Composable
 fun MainScreenContent(
     tasks: List<TaskUiState>,
+    selectedCount: Int,
+    onDeleteSelected: () -> Unit,
+    onClearSelection: () -> Unit,
     newTaskText: String,
     onNewTaskTextChange: (String) -> Unit,
     onTaskClick: (TaskUiState) -> Unit,
+    onTaskLongClick: (TaskUiState) -> Unit,
     onNewListClick: () -> Unit,
     onNewNoteClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("presenting: notericious") }
+                title = { 
+                    if (selectedCount > 0) {
+                        Text("$selectedCount selected")
+                    } else {
+                        Text("presenting: notericious")
+                    }
+                },
+                navigationIcon = {
+                    if (selectedCount > 0) {
+                        IconButton(onClick = onClearSelection) {
+                            Icon(Icons.Default.Close, contentDescription = "Clear selection")
+                        }
+                    }
+                },
+                actions = {
+                    if (selectedCount > 0) {
+                        IconButton(onClick = onDeleteSelected) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete selected")
+                        }
+                    }
+                }
             )
         },
         bottomBar = {
-            InputRow(
-                newTaskText = newTaskText,
-                onNewTaskTextChange = onNewTaskTextChange,
-                onAddTask = {
-                    // This is still called by keyboard 'Done' or can be used as 'Default'
-                    // For now, let's make it trigger the New Note action as a default
-                    onNewNoteClick()
-                },
-                onNewListClick = onNewListClick,
-                onNewNoteClick = onNewNoteClick
-            )
+            if (selectedCount == 0) {
+                InputRow(
+                    newTaskText = newTaskText,
+                    onNewTaskTextChange = onNewTaskTextChange,
+                    onAddTask = {
+                        onNewNoteClick()
+                    },
+                    onNewListClick = onNewListClick,
+                    onNewNoteClick = onNewNoteClick
+                )
+            }
         },
     ) { paddingValues ->
         Column(
@@ -123,7 +164,7 @@ fun MainScreenContent(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "Type a title below to get started",
+                        "Tap the '+' button below to get started",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -134,10 +175,11 @@ fun MainScreenContent(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item { Spacer(modifier = Modifier.height(8.dp)) }
-                    items(tasks) { task ->
+                    items(tasks, key = { it.id }) { task ->
                         TaskSummaryItem(
                             task = task,
-                            onClick = { onTaskClick(task) }
+                            onClick = { onTaskClick(task) },
+                            onLongClick = { onTaskLongClick(task) }
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -147,18 +189,26 @@ fun MainScreenContent(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TaskSummaryItem(
     task: TaskUiState,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (task.isSelected) 
+                MaterialTheme.colorScheme.primaryContainer 
+            else 
+                MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -172,11 +222,15 @@ fun TaskSummaryItem(
             Text(
                 text = if (task.isNote) "Note" else "To-Do List",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
+                color = if (task.isSelected)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.primary
             )
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -185,13 +239,17 @@ fun MainScreenPreview() {
         val sampleTasks = listOf(
             TaskUiState(1, "Buy groceries", false, isNote = false),
             TaskUiState(2, "Walk the dog", false, isNote = false),
-            TaskUiState(3, "Read a book", true, isNote = true)
+            TaskUiState(3, "Read a book", true, isNote = true, isSelected = true)
         )
         MainScreenContent(
             tasks = sampleTasks,
+            selectedCount = 1,
+            onDeleteSelected = {},
+            onClearSelection = {},
             newTaskText = "New note title",
             onNewTaskTextChange = {},
             onTaskClick = {},
+            onTaskLongClick = {},
             onNewListClick = {},
             onNewNoteClick = {}
         )
