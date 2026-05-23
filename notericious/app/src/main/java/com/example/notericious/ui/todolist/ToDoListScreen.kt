@@ -1,4 +1,4 @@
-package com.example.notericious
+package com.example.notericious.ui.todolist
 
 import android.app.Application
 import android.util.Log
@@ -21,10 +21,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.notericious.InputRow
+import com.example.notericious.NotericiousApp
+import com.example.notericious.TaskViewModel
+import com.example.notericious.TaskViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ToDoScreenWithScaffold(
+fun ToDoListScreen(
     navController: NavController,
     taskViewModel: TaskViewModel = viewModel(
         factory = TaskViewModelFactory(
@@ -32,7 +36,7 @@ fun ToDoScreenWithScaffold(
             useInMemoryDb = false
         )
     ),
-    onNavigateToNewScreen: (() -> Unit)? = null
+    optionalTitle: String?
 ) {
     val tasksUiState by taskViewModel.allTasks.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current

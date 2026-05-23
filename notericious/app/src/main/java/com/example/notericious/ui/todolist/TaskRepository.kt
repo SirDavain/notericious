@@ -4,7 +4,9 @@ import kotlinx.coroutines.flow.Flow
 
 class TaskRepository(private val taskDao: TaskDao) {
 
-    val allTasks: Flow<List<Task>> = taskDao.getAllTasks()
+    val allTasks: Flow<List<Task>> = taskDao.getTopLevelTasks()
+
+    fun getTasksByParentId(parentId: Int): Flow<List<Task>> = taskDao.getTasksByParentId(parentId)
 
     /*suspend fun getAllNotes() {
         taskDao.getAllNotes()

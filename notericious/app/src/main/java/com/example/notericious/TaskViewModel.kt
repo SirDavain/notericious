@@ -8,20 +8,33 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-open class TaskViewModel(
+@HiltViewModel
+open class TaskViewModel @Inject constructor(
     application: Application, // AndroidViewModel requires Application
-    private val repository: TaskRepository
+    private val repository: TaskRepository,
+    private val savedStateHandle: SavedStateHandle? = null
 ) : AndroidViewModel(application) {
 
-    open val allTasks: StateFlow<List<TaskUiState>> = repository.allTasks.map { tasks ->
+    private val parentId: Int? = savedStateHandle?.get<Int>(NavRoutes.NOTES_ID_ARG)
+
+    open val allTasks: StateFlow<List<TaskUiState>> = (if (parentId != null && parentId != -1) {
+        repository.getTasksByParentId(parentId)
+    } else {
+        repository.allTasks
+    }).map { tasks ->
         // tasks is List<Task> from DAO (which includes completedOrReopenedTimestamp)
         tasks.map { task ->
             // Map to TaskUiState. The timestamp is used for sorting in DAO,
@@ -54,7 +67,8 @@ open class TaskViewModel(
                 val taskToInsert = Task(
                     title = text,
                     isDone = false,
-                    completedOrReopenedTimestamp = currentTime
+                    completedOrReopenedTimestamp = currentTime,
+                    parentId = parentId
                 )
                 repository.insert(taskToInsert) // Assuming repository.insert takes a Task object
                 newTaskText = ""

@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // This class will be annotated with @Database
 // and will serve as the main access point to your persisted data.
 
-@Database(entities = [Task::class], version = 2, exportSchema = false) // Increment version on schema changes
+@Database(entities = [Task::class], version = 3, exportSchema = false) // Increment version on schema changes
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
 
@@ -37,7 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     .addMigrations(MIGRATION_1_2)
                     // Wipes and rebuilds instead of migrating if no Migration object.
-                    // .fallbackToDestructiveMigration() // Use with caution during development
+                    .fallbackToDestructiveMigration(dropAllTables = true) // Use with caution during development
                     .build()
                 INSTANCE = instance
                 // return instance

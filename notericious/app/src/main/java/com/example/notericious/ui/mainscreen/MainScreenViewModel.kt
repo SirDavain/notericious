@@ -70,7 +70,7 @@ open class MainScreenViewModel @Inject constructor(
         newTaskText = newText
     }
 
-    open fun insertNewTask(isNote: Boolean = false) {
+    open fun insertNewTask(isNote: Boolean = false, parentId: Int? = null) {
         val text = newTaskText.trim() // Trim whitespace
         if (text.isNotBlank()) {
             viewModelScope.launch {
@@ -79,7 +79,8 @@ open class MainScreenViewModel @Inject constructor(
                     title = text,
                     isDone = false,
                     completedOrReopenedTimestamp = currentTime,
-                    isNote = isNote
+                    isNote = isNote,
+                    parentId = parentId
                 )
                 taskRepository.insert(taskToInsert)
                 newTaskText = ""

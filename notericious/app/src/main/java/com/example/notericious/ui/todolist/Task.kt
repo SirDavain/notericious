@@ -11,5 +11,6 @@ data class Task(
     var content: String = "",
     val isDone: Boolean = false,
     var completedOrReopenedTimestamp: Long? = null,
-    val isNote: Boolean = false
+    val isNote: Boolean = false,
+    val parentId: Int? = null
 )

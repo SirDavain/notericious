@@ -39,8 +39,7 @@ import androidx.navigation.NavController
 @Composable
 fun NotesWritingScreen(
     navController: NavController,
-    viewModel: NotesViewModel = hiltViewModel(),
-    optionalTitle: String?
+    viewModel: NotesViewModel = hiltViewModel()
 ) {
     val title by viewModel.noteTitle.collectAsState()
     val content by viewModel.noteContent.collectAsState()

@@ -15,19 +15,37 @@ import kotlinx.coroutines.flow.Flow
 interface TaskDao {
     @Query("""
         SELECT * FROM tasks
+        WHERE parentId IS NULL
         ORDER BY
-            isDone ASC, -- false (0) before true (1)
+            isDone ASC,
             CASE
-                WHEN isDone = 0 THEN completedOrReopenedTimestamp -- For undone items, sort by timestamp ASC (older first, newer later)
-                ELSE NULL -- This part of CASE won't be used for isDone = 0
+                WHEN isDone = 0 THEN completedOrReopenedTimestamp
+                ELSE NULL
             END ASC,
             CASE
-                WHEN isDone = 1 THEN completedOrReopenedTimestamp -- For done items, sort by timestamp DESC (newer first)
-                ELSE NULL -- This part of CASE won't be used for isDone = 1
+                WHEN isDone = 1 THEN completedOrReopenedTimestamp
+                ELSE NULL
             END DESC,
-            id ASC -- Fallback to id for items with identical timestamps (unlikely but good for stability)
+            id ASC
     """)
-    fun getAllTasks(): Flow<List<Task>>
+    fun getTopLevelTasks(): Flow<List<Task>>
+
+    @Query("""
+        SELECT * FROM tasks
+        WHERE parentId = :parentId
+        ORDER BY
+            isDone ASC,
+            CASE
+                WHEN isDone = 0 THEN completedOrReopenedTimestamp
+                ELSE NULL
+            END ASC,
+            CASE
+                WHEN isDone = 1 THEN completedOrReopenedTimestamp
+                ELSE NULL
+            END DESC,
+            id ASC
+    """)
+    fun getTasksByParentId(parentId: Int): Flow<List<Task>>
 
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     suspend fun getTaskById(taskId: Int): Task?

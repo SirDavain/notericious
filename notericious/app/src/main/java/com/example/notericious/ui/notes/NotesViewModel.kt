@@ -20,7 +20,7 @@ class NotesViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val noteId: Int? = savedStateHandle.get<Int>("noteId")
+    private val noteId: Int? = savedStateHandle.get<Int>(com.example.notericious.NavRoutes.NOTES_ID_ARG)
 
     private val _currentNote = MutableStateFlow<Task?>(null)
 
@@ -37,7 +37,7 @@ class NotesViewModel @Inject constructor(
             loadNote(noteId)
         } else {
             // New note or title passed from MainScreen
-            val optionalTitle = savedStateHandle.get<String>("optionalTitle")
+            val optionalTitle = savedStateHandle.get<String>(com.example.notericious.NavRoutes.NOTES_TITLE_ARG)
             _currentNote.value = Task(
                 title = optionalTitle ?: "",
                 isNote = true,

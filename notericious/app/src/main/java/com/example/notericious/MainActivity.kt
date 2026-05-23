@@ -65,6 +65,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -74,6 +75,7 @@ import androidx.navigation.navArgument
 import com.example.notericious.ui.mainscreen.MainScreen
 import com.example.notericious.ui.notes.NotesWritingScreen
 import com.example.notericious.ui.theme.NotericiousTheme
+import com.example.notericious.ui.todolist.ToDoListScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -93,20 +95,34 @@ class MainActivity : ComponentActivity() {
                     composable(NavRoutes.MAIN_SCREEN) {
                         MainScreen(navController = navController)
                     }
-                    composable(NavRoutes.TODO_LIST_SCREEN) {
-                        ToDoScreenWithScaffold(
+                    composable(
+                        route = NavRoutes.TODO_LIST_SCREEN,
+                        arguments = listOf(
+                            navArgument(NavRoutes.NOTES_ID_ARG) {
+                                type = NavType.IntType
+                                defaultValue = -1
+                            },
+                            navArgument(NavRoutes.NOTES_TITLE_ARG) {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
+                        )
+                    ) { backStageEntry ->
+                        val title = backStageEntry.arguments?.getString(NavRoutes.NOTES_TITLE_ARG)
+                        ToDoListScreen(
                             navController = navController,
-                            taskViewModel = viewModel(
-                                factory = TaskViewModelFactory(
-                                    LocalContext.current.applicationContext as Application,
-                                    useInMemoryDb = false
-                                )
-                            ),
+                            taskViewModel = hiltViewModel(backStageEntry),
+                            optionalTitle = title
                         )
                     }
                     composable(
                         route = NavRoutes.NOTES_WRITING_SCREEN,
                         arguments = listOf(
+                            navArgument(NavRoutes.NOTES_ID_ARG) {
+                                type = NavType.IntType
+                                defaultValue = -1
+                            },
                             navArgument(NavRoutes.NOTES_TITLE_ARG) {
                                 type = NavType.StringType
                                 nullable = true
@@ -116,8 +132,7 @@ class MainActivity : ComponentActivity() {
                     ) { backStageEntry ->
                         val title = backStageEntry.arguments?.getString(NavRoutes.NOTES_TITLE_ARG)
                         NotesWritingScreen(
-                            navController = navController,
-                            optionalTitle = title ?: ""
+                            navController = navController
                         )
                     }
                 }
@@ -519,7 +534,9 @@ fun NotericiousPreview() {
 }
 
 class FakeTaskDaoForPreview : TaskDao {
-    override fun getAllTasks(): Flow<List<Task>> = MutableStateFlow(emptyList())
+    override fun getTopLevelTasks(): Flow<List<Task>> = MutableStateFlow(emptyList())
+
+    override fun getTasksByParentId(parentId: Int): Flow<List<Task>> = MutableStateFlow(emptyList())
 
     override suspend fun insertTask(task: com.example.notericious.Task): Long = 0L
 
@@ -528,10 +545,6 @@ class FakeTaskDaoForPreview : TaskDao {
     }
 
     override suspend fun updateTaskDoneStatusAndTimestamp(taskId: Int, isDone: Boolean, timestamp: Long) {
-        // No-op for preview.
-        // In a more interactive preview, you might modify an in-memory list here
-        // if your preview ViewModel actually used this DAO to manipulate data.
-        // For now, doing nothing is fine.
     }
 
     override suspend fun getTaskById(taskId: Int): com.example.notericious.Task? = null

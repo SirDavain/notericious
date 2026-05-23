@@ -1,6 +1,5 @@
 package com.example.notericious.ui.mainscreen
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +16,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,11 +35,6 @@ import androidx.navigation.NavController
 import com.example.notericious.InputRow
 import com.example.notericious.NavRoutes
 import com.example.notericious.TaskUiState
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.notericious.ui.theme.NotericiousTheme
 
@@ -65,9 +58,9 @@ fun MainScreen(
                 viewModel.toggleSelection(task.id)
             } else {
                 if (task.isNote) {
-                    navController.navigate(NavRoutes.notesWritingScreenWithOptionalTitle(task.text))
+                    navController.navigate(NavRoutes.notesWritingScreenWithOptionalTitle(task.text, noteId = task.id))
                 } else {
-                    navController.navigate(NavRoutes.TODO_LIST_SCREEN)
+                    navController.navigate(NavRoutes.todoListScreenWithOptionalTitle(task.text, listId = task.id))
                 }
             }
         },
@@ -78,7 +71,7 @@ fun MainScreen(
             if (viewModel.newTaskText.isNotBlank()) {
                 viewModel.insertNewTask(isNote = false)
             } else {
-                navController.navigate(NavRoutes.TODO_LIST_SCREEN)
+                navController.navigate(NavRoutes.TODO_LIST_SCREEN_ROUTE)
             }
         },
         onNewNoteClick = { 
@@ -111,7 +104,7 @@ fun MainScreenContent(
                     if (selectedCount > 0) {
                         Text("$selectedCount selected")
                     } else {
-                        Text("presenting: notericious")
+                        Text("notericious: a note-taking app in progress")
                     }
                 },
                 navigationIcon = {
