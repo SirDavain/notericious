@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -26,6 +27,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,6 +50,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -72,6 +77,7 @@ import com.example.notericious.ui.theme.NotericiousTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,11 +102,6 @@ class MainActivity : ComponentActivity() {
                                     useInMemoryDb = false
                                 )
                             ),
-                            // Pass a lambda to trigger navigation
-                            /*onNavigateToNewScreen = {
-                                Log.d("NavHost", "Navigating from ToDoScreen to MainScreen triggered")
-                                navController.navigate(NavRoutes.MAIN_SCREEN)
-                            }*/
                         )
                     }
                     composable(
@@ -144,7 +145,7 @@ fun NotericiousApp(
             indication = null // No visual indication for this background click
         ) {
             // If a task is being edited, clicking outside saves and clears focus
-            Log.d("NotericiousApp", "Outer Column clicked. currentlyEditingId: $currentlyEditingId") // Add this log
+            Log.d("NotericiousApp", "Outer Column clicked. currentlyEditingId: $currentlyEditingId")
             if (currentlyEditingId != null) {
                 Log.d("NotericiousApp", "Outer Column click - calling saveOrDeleteCurrentEditedTask")
                 taskViewModel.saveOrDeleteCurrentEditedTask() // This will also clear currentlyEditingTaskId
@@ -340,8 +341,12 @@ fun TaskItem(
 fun InputRow(
     newTaskText: String,
     onNewTaskTextChange: (String) -> Unit,
-    onAddTask: () -> Unit
+    onAddTask: () -> Unit,
+    onNewListClick: () -> Unit = {},
+    onNewNoteClick: () -> Unit = {}
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -369,18 +374,53 @@ fun InputRow(
         )
         Spacer(modifier = Modifier.width(30.dp))
 
-        // I want it to control if we're creating a task or a note
-        // i.e. after typing smth into the input bar and pressing the FAB it should give
+        // After typing smth into the input bar and pressing the FAB it should give
         // you an option to create a task or a note.
-        FloatingActionButton(
-            onClick = { onAddTask() },
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        Box {
+            FloatingActionButton(
+                onClick = {
+                    showMenu = true
+                },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                shape = CircleShape,
+            ) {
+                Log.d("MainScreen", "FAB for adding a task clicked!")
+                Icon(
+                    imageVector = if (showMenu) Icons.Filled.Close else Icons.Filled.Add,
+                    contentDescription = if (showMenu) "Close menu" else "Add new task or note"
+                )
+            }
 
-            shape = CircleShape,
-        ) {
-            Log.d("ToDoScreen", "FAB for adding a task clicked!")
-            Icon(Icons.Filled.Add, contentDescription = "Add new task or go to new screen")
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("New List") },
+                    onClick = {
+                        showMenu = false
+                        if (newTaskText.isNotBlank()) {
+                            onAddTask() // This will now create a List via MainScreen logic
+                        } else {
+                            onNewListClick()
+                        }
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("New Note") },
+                    onClick = {
+                        showMenu = false
+                        if (newTaskText.isNotBlank()) {
+                            // This would ideally call a separate 'onAddNote' 
+                            // but for now we follow the existing pattern
+                            onNewNoteClick()
+                        } else {
+                            onNewNoteClick()
+                        }
+                    }
+                )
+            }
         }
     }
 }

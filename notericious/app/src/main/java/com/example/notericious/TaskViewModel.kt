@@ -26,7 +26,7 @@ open class TaskViewModel(
         tasks.map { task ->
             // Map to TaskUiState. The timestamp is used for sorting in DAO,
             // not necessarily needed in TaskUiState unless you display it.
-            TaskUiState(task.id, task.title, task.isDone)
+            TaskUiState(task.id, task.title, task.isDone, task.isNote)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -151,7 +151,11 @@ open class TaskViewModel(
                         title = updatedTaskEntity.title,
                         content = updatedTaskEntity.content
                     )
-                    RetrofitClient.instance.saveNote(updatedNote)
+                    try {
+                        RetrofitClient.instance.saveNote(updatedNote)
+                    } catch (e: Exception) {
+                        Log.e("SyncError", "Failed to sync note to server", e)
+                    }
                 }
             }
         }
@@ -186,7 +190,8 @@ open class TaskViewModel(
 data class TaskUiState(
     val id: Int,
     val text: String,
-    val isDone: Boolean
+    val isDone: Boolean,
+    val isNote: Boolean = false
 )
 
 // Factory remains mostly the same, ensure AppDatabase is correctly versioned and has migrations

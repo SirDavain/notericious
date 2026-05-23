@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-fun Task.toUiState(): TaskUiState = TaskUiState(id, title, isDone)
+fun Task.toUiState(): TaskUiState = TaskUiState(id, title, isDone, isNote)
 
 @HiltViewModel
 open class MainScreenViewModel @Inject constructor(
@@ -40,27 +40,23 @@ open class MainScreenViewModel @Inject constructor(
         newTaskText = newText
     }
 
-    open fun insertNewTask() {
+    open fun insertNewTask(isNote: Boolean = false) {
         val text = newTaskText.trim() // Trim whitespace
         if (text.isNotBlank()) {
             viewModelScope.launch {
                 val currentTime = System.currentTimeMillis()
-                // Create Task object with the new timestamp
-                // For new (undone) tasks, this timestamp will place them at the
-                // bottom of the "undone" list due to `completedOrReopenedTimestamp ASC`
-                // for undone items in the DAO query.
                 val taskToInsert = Task(
                     title = text,
                     isDone = false,
-                    completedOrReopenedTimestamp = currentTime
+                    completedOrReopenedTimestamp = currentTime,
+                    isNote = isNote
                 )
-                taskRepository.insert(taskToInsert) // Assuming repository.insert takes a Task object
+                taskRepository.insert(taskToInsert)
                 newTaskText = ""
             }
         }
     }
 
-    // This function will now be responsible for updating the timestamp as well
     open fun updateTaskDoneStatus(taskId: Int, newDoneState: Boolean) {
         val taskBeingModified = allTasks.value.find { it.id == taskId }
 
