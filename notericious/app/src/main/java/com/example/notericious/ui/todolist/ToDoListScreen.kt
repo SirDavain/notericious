@@ -50,7 +50,7 @@ fun ToDoListScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("My List") },
+                title = { Text(optionalTitle ?: "My List") },
                 navigationIcon = {
                     IconButton(onClick = {
                         Log.d("ToDoScreen", "Back arrow clicked!")
@@ -73,9 +73,10 @@ fun ToDoListScreen(
                     if (taskViewModel.currentlyEditingTaskId != null) {
                         taskViewModel.saveOrDeleteCurrentEditedTask()
                     }
-                    taskViewModel.insertNewTask()
+                    taskViewModel.addTaskToCurrentList()
                     focusManager.clearFocus() // Clear focus from any item being edited
-                }
+                },
+                isToDoItem = true
             )
         }
     ) { innerPadding ->

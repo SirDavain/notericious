@@ -55,22 +55,19 @@ open class TaskViewModel @Inject constructor(
         newTaskText = newText
     }
 
-    open fun insertNewTask() {
-        val text = newTaskText.trim() // Trim whitespace
+    open fun addTaskToCurrentList() {
+        val text = newTaskText.trim()
         if (text.isNotBlank()) {
             viewModelScope.launch {
                 val currentTime = System.currentTimeMillis()
-                // Create Task object with the new timestamp
-                // For new (undone) tasks, this timestamp will place them at the
-                // bottom of the "undone" list due to `completedOrReopenedTimestamp ASC`
-                // for undone items in the DAO query.
                 val taskToInsert = Task(
                     title = text,
                     isDone = false,
                     completedOrReopenedTimestamp = currentTime,
-                    parentId = parentId
+                    parentId = parentId,
+                    isNote = false
                 )
-                repository.insert(taskToInsert) // Assuming repository.insert takes a Task object
+                repository.insert(taskToInsert)
                 newTaskText = ""
             }
         }

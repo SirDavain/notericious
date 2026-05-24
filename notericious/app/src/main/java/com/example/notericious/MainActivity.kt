@@ -358,7 +358,8 @@ fun InputRow(
     onNewTaskTextChange: (String) -> Unit,
     onAddTask: () -> Unit,
     onNewListClick: () -> Unit = {},
-    onNewNoteClick: () -> Unit = {}
+    onNewNoteClick: () -> Unit = {},
+    isToDoItem: Boolean = false
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -394,13 +395,17 @@ fun InputRow(
         Box {
             FloatingActionButton(
                 onClick = {
-                    showMenu = true
+                    if (isToDoItem && newTaskText.isNotBlank()) {
+                        showMenu = false
+                        onAddTask()
+                    }
+                    else showMenu = true
                 },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 shape = CircleShape,
             ) {
-                Log.d("MainScreen", "FAB for adding a task clicked!")
+                Log.d("Any Screen", "FAB for adding a note/list/task clicked!")
                 Icon(
                     imageVector = if (showMenu) Icons.Filled.Close else Icons.Filled.Add,
                     contentDescription = if (showMenu) "Close menu" else "Add new task or note"
@@ -415,24 +420,14 @@ fun InputRow(
                     text = { Text("New List") },
                     onClick = {
                         showMenu = false
-                        if (newTaskText.isNotBlank()) {
-                            onAddTask() // This will now create a List via MainScreen logic
-                        } else {
-                            onNewListClick()
-                        }
+                        onNewListClick()
                     }
                 )
                 DropdownMenuItem(
                     text = { Text("New Note") },
                     onClick = {
                         showMenu = false
-                        if (newTaskText.isNotBlank()) {
-                            // This would ideally call a separate 'onAddNote' 
-                            // but for now we follow the existing pattern
-                            onNewNoteClick()
-                        } else {
-                            onNewNoteClick()
-                        }
+                        onNewNoteClick()
                     }
                 )
             }
@@ -491,7 +486,7 @@ fun NotericiousPreview() {
                             // newTaskText = newText
                             // allTasks.value = allTasks.value // Trigger recomposition if needed
                         }
-                        override fun insertNewTask() {
+                        override fun addTaskToCurrentList() {
                             // if (newTaskText.isNotBlank()) {
                             // val newId = (allTasks.value.maxOfOrNull { it.id } ?: 0) + 1
                             // val newTask = TaskUiState(newId, newTaskText, false)

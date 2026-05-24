@@ -13,6 +13,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -29,6 +31,9 @@ open class MainScreenViewModel @Inject constructor(
 
     private val selectedIds = MutableStateFlow<Set<Int>>(emptySet())
     val selectedTaskIds: StateFlow<Set<Int>> = selectedIds
+
+    private val _navigationEvent = MutableSharedFlow<Pair<Int, String>>()
+    val navigationEvent = _navigationEvent.asSharedFlow()
 
     open val allTasks: StateFlow<List<com.example.notericious.TaskUiState>> = 
         combine(taskRepository.allTasks, selectedIds) { domainTasks, selected ->
@@ -70,21 +75,20 @@ open class MainScreenViewModel @Inject constructor(
         newTaskText = newText
     }
 
-    open fun insertNewTask(isNote: Boolean = false, parentId: Int? = null) {
-        val text = newTaskText.trim() // Trim whitespace
-        if (text.isNotBlank()) {
-            viewModelScope.launch {
-                val currentTime = System.currentTimeMillis()
-                val taskToInsert = Task(
-                    title = text,
-                    isDone = false,
-                    completedOrReopenedTimestamp = currentTime,
-                    isNote = isNote,
-                    parentId = parentId
-                )
-                taskRepository.insert(taskToInsert)
-                newTaskText = ""
-            }
+    open fun createNewToDoList() {
+        val text = newTaskText.trim().ifBlank { "Untitled List" }
+        viewModelScope.launch {
+            val currentTime = System.currentTimeMillis()
+            val taskToInsert = Task(
+                title = text,
+                isDone = false,
+                completedOrReopenedTimestamp = currentTime,
+                isNote = false,
+                parentId = null
+            )
+            val newId = taskRepository.insert(taskToInsert)
+            newTaskText = ""
+            _navigationEvent.emit(newId.toInt() to text)
         }
     }
 

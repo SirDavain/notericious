@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,6 +46,12 @@ fun MainScreen(
 ) {
     val tasks by viewModel.allTasks.collectAsState()
     val selectedIds by viewModel.selectedTaskIds.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { (id, title) ->
+            navController.navigate(NavRoutes.todoListScreenWithOptionalTitle(title, listId = id))
+        }
+    }
 
     MainScreenContent(
         tasks = tasks,
@@ -68,15 +75,10 @@ fun MainScreen(
             viewModel.toggleSelection(task.id)
         },
         onNewListClick = { 
-            if (viewModel.newTaskText.isNotBlank()) {
-                viewModel.insertNewTask(isNote = false)
-            } else {
-                navController.navigate(NavRoutes.TODO_LIST_SCREEN_ROUTE)
-            }
+            viewModel.createNewToDoList()
         },
         onNewNoteClick = { 
-            // Just navigate to the writing screen with the optional title
-            // Let NotesViewModel handle the actual insertion upon first edit
+            // Navigate to the writing screen with the optional title
             navController.navigate(NavRoutes.notesWritingScreenWithOptionalTitle(viewModel.newTaskText.ifBlank { null }))
             viewModel.onNewTaskTextChange("") // Clear the input field
         }
@@ -132,7 +134,8 @@ fun MainScreenContent(
                         onNewNoteClick()
                     },
                     onNewListClick = onNewListClick,
-                    onNewNoteClick = onNewNoteClick
+                    onNewNoteClick = onNewNoteClick,
+                    isToDoItem = false
                 )
             }
         },
