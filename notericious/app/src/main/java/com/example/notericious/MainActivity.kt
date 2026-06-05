@@ -374,13 +374,35 @@ fun InputRow(
             onValueChange = onNewTaskTextChange,
             modifier = Modifier
                 .weight(1f)
-                .defaultMinSize(minHeight = 48.dp),
+                .defaultMinSize(minHeight = 48.dp)
+                .onKeyEvent { keyEvent ->
+                    if (keyEvent.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_ENTER ||
+                        keyEvent.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_NUMPAD_ENTER
+                    ) {
+                        if (keyEvent.nativeKeyEvent.action == android.view.KeyEvent.ACTION_UP) {
+                            if (isToDoItem && newTaskText.isNotBlank()) {
+                                onAddTask()
+                            } else if (newTaskText.isNotBlank()) {
+                                showMenu = true
+                            }
+                            return@onKeyEvent true
+                        }
+                    }
+                    false
+                },
             placeholder = { Text("Add a new task...") },
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Done
             ),
-            keyboardActions = KeyboardActions(onDone = { onAddTask() }),
+            keyboardActions = KeyboardActions(onDone = {
+                if (isToDoItem && newTaskText.isNotBlank()) {
+                    onAddTask()
+                } else if (newTaskText.isNotBlank()) {
+                    showMenu = true
+                }
+            }),
+            singleLine = true,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
