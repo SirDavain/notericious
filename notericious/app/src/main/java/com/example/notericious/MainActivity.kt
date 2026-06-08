@@ -109,11 +109,9 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     ) { backStageEntry ->
-                        val title = backStageEntry.arguments?.getString(NavRoutes.NOTES_TITLE_ARG)
                         ToDoListScreen(
                             navController = navController,
-                            taskViewModel = hiltViewModel(backStageEntry),
-                            optionalTitle = title
+                            viewModel = hiltViewModel(backStageEntry)
                         )
                     }
                     composable(
@@ -300,14 +298,12 @@ fun TaskItem(
                             else MaterialTheme.colorScheme.onSurface
                 ),
                 keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Done,
-                    capitalization = KeyboardCapitalization.Sentences
+                    imeAction = ImeAction.Done
+                    //capitalization = KeyboardCapitalization.Sentences
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
                         onEditDone()
-                        //keyboardController?.hide()
-                        //focusManager.clearFocus()
                     }
                 ),
                 singleLine = false, // Allow multi-line editing
@@ -392,8 +388,8 @@ fun InputRow(
                 },
             placeholder = { Text("Add a new task...") },
             keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Done
+                //capitalization = KeyboardCapitalization.Sentences
             ),
             keyboardActions = KeyboardActions(onDone = {
                 if (isToDoItem && newTaskText.isNotBlank()) {

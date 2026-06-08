@@ -1,23 +1,31 @@
 package com.example.notericious.ui.todolist
 
+import android.R.attr.navigationIcon
 import android.app.Application
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -30,27 +38,51 @@ import com.example.notericious.TaskViewModelFactory
 @Composable
 fun ToDoListScreen(
     navController: NavController,
-    taskViewModel: TaskViewModel = viewModel(
+    viewModel: TaskViewModel = viewModel(
         factory = TaskViewModelFactory(
             LocalContext.current.applicationContext as Application,
             useInMemoryDb = false
         )
-    ),
-    optionalTitle: String?
+    )
 ) {
-    val tasksUiState by taskViewModel.allTasks.collectAsStateWithLifecycle()
+    val tasksUiState by viewModel.allTasks.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+    val title by viewModel.listTitle.collectAsStateWithLifecycle()
 
     // TRIGGER NETWORK SYNC ON INITIAL LOAD HERE
     LaunchedEffect(Unit) {
-        taskViewModel.fetchTasksFromServer()
+        viewModel.fetchTasksFromServer()
     }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(optionalTitle ?: "My List") },
+                title = {
+                    BasicTextField(
+                        value = title,
+                        onValueChange = { viewModel.updateListTitle(it) },
+                        textStyle = LocalTextStyle.current.copy(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (title.isEmpty()) {
+                                Text(
+                                    text = "Title of this list",
+                                    style = LocalTextStyle.current.copy(
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                )
+                            }
+                            innerTextField()
+                        }
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         Log.d("ToDoScreen", "Back arrow clicked!")
@@ -66,14 +98,14 @@ fun ToDoListScreen(
         },
         bottomBar = {
             InputRow(
-                newTaskText = taskViewModel.newTaskText,
-                onNewTaskTextChange = { taskViewModel.onNewTaskTextChange(it) },
+                newTaskText = viewModel.newTaskText,
+                onNewTaskTextChange = { viewModel.onNewTaskTextChange(it) },
                 onAddTask = {
                     // If a task is being edited, save it before adding a new one
-                    if (taskViewModel.currentlyEditingTaskId != null) {
-                        taskViewModel.saveOrDeleteCurrentEditedTask()
+                    if (viewModel.currentlyEditingTaskId != null) {
+                        viewModel.saveOrDeleteCurrentEditedTask()
                     }
-                    taskViewModel.addTaskToCurrentList()
+                    viewModel.addTaskToCurrentList()
                     focusManager.clearFocus() // Clear focus from any item being edited
                 },
                 isToDoItem = true
@@ -83,7 +115,7 @@ fun ToDoListScreen(
         NotericiousApp(
             modifier = Modifier.padding(innerPadding),
             tasksUiState = tasksUiState,
-            taskViewModel = taskViewModel
+            taskViewModel = viewModel
         )
     }
 }

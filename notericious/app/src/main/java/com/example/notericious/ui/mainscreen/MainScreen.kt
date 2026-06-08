@@ -38,6 +38,11 @@ import com.example.notericious.NavRoutes
 import com.example.notericious.TaskUiState
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.notericious.ui.theme.NotericiousTheme
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddAlert
+import androidx.compose.material.icons.filled.AddTask
 
 @Composable
 fun MainScreen(
@@ -168,9 +173,9 @@ fun MainScreenContent(
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f).padding(vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    item { Spacer(modifier = Modifier.height(8.dp)) }
+                    item { Spacer(modifier = Modifier.height(4.dp)) }
                     items(tasks, key = { it.id }) { task ->
                         TaskSummaryItem(
                             task = task,
@@ -207,7 +212,7 @@ fun TaskSummaryItem(
                 MaterialTheme.colorScheme.surface
         )
     ) {
-        Column(
+        /*Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
@@ -222,6 +227,21 @@ fun TaskSummaryItem(
                     MaterialTheme.colorScheme.onPrimaryContainer
                 else
                     MaterialTheme.colorScheme.primary
+            )
+        }*/
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Icon(
+                imageVector = if (task.isNote) Icons.Filled.AddAlert else Icons.Filled.AddTask,
+                contentDescription = if (task.isNote) "A note" else "A list"
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = task.text,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         }
     }

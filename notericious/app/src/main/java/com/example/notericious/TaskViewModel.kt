@@ -24,16 +24,22 @@ import javax.inject.Inject
 @HiltViewModel
 open class TaskViewModel @Inject constructor(
     application: Application, // AndroidViewModel requires Application
-    private val repository: TaskRepository,
+    private val taskRepository: TaskRepository,
     private val savedStateHandle: SavedStateHandle? = null
 ) : AndroidViewModel(application) {
 
     private val parentId: Int? = savedStateHandle?.get<Int>(NavRoutes.NOTES_ID_ARG)
 
+    private val _currentList = MutableStateFlow<Task?>(null)
+
+    val listTitle: StateFlow<String> = _currentList
+        .map { it?.title ?: "" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     open val allTasks: StateFlow<List<TaskUiState>> = (if (parentId != null && parentId != -1) {
-        repository.getTasksByParentId(parentId)
+        taskRepository.getTasksByParentId(parentId)
     } else {
-        repository.allTasks
+        taskRepository.allTasks
     }).map { tasks ->
         // tasks is List<Task> from DAO (which includes completedOrReopenedTimestamp)
         tasks.map { task ->
@@ -47,12 +53,49 @@ open class TaskViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
+    init {
+        if (parentId != null && parentId != -1) {
+            loadList(parentId)
+        } else {
+            // New list or title passed from MainScreen
+            val optionalTitle = savedStateHandle?.get<String>(NavRoutes.NOTES_TITLE_ARG)
+            _currentList.value = Task(
+                title = optionalTitle ?: "",
+                isNote = false,
+                completedOrReopenedTimestamp = System.currentTimeMillis()
+            )
+        }
+    }
+
     open var newTaskText by mutableStateOf("")
+    open var newListTitle by mutableStateOf("")
     open var currentlyEditingTaskId by mutableStateOf<Int?>(null)
     open var currentEditText by mutableStateOf("")
 
     open fun onNewTaskTextChange(newText: String) {
         newTaskText = newText
+    }
+
+    fun updateListTitle(newTitle: String) {
+        val listToUpdate = _currentList.value ?: return
+        if (listToUpdate.title != newTitle) {
+            val updatedList = listToUpdate.copy(title = newTitle)
+            _currentList.value = updatedList
+            viewModelScope.launch {
+                if (updatedList.id == 0) {
+                    val newId = taskRepository.insert(updatedList)
+                    _currentList.value = updatedList.copy(id = newId.toInt())
+                } else {
+                    taskRepository.update(updatedList)
+                }
+            }
+        }
+    }
+
+    private fun loadList(id: Int) {
+        viewModelScope.launch {
+            _currentList.value = taskRepository.getTaskById(id)
+        }
     }
 
     open fun addTaskToCurrentList() {
@@ -67,7 +110,7 @@ open class TaskViewModel @Inject constructor(
                     parentId = parentId,
                     isNote = false
                 )
-                repository.insert(taskToInsert)
+                taskRepository.insert(taskToInsert)
                 newTaskText = ""
             }
         }
@@ -99,13 +142,13 @@ open class TaskViewModel @Inject constructor(
 
             // If your repository uses a generic update(task: Task) and you fetch first
             // (More robust as it ensures you're updating the correct full Task object)
-            val originalTaskEntity = repository.getTaskById(taskId) // Assuming repository has getTaskById
+            val originalTaskEntity = taskRepository.getTaskById(taskId) // Assuming repository has getTaskById
             if (originalTaskEntity != null) {
                 val updatedTaskEntity = originalTaskEntity.copy(
                     isDone = newDoneState,
                     completedOrReopenedTimestamp = currentTime
                 )
-                repository.update(updatedTaskEntity)
+                taskRepository.update(updatedTaskEntity)
             } else {
                 Log.e("TaskViewModel", "Task with ID $taskId not found for updating done status.")
             }
@@ -148,13 +191,13 @@ open class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             val trimmedText = newText.trim()
             if (trimmedText.isBlank()) {
-                repository.deleteTaskById(taskId)
+                taskRepository.deleteTaskById(taskId)
             } else {
-                val originalTaskEntity = repository.getTaskById(taskId)
+                val originalTaskEntity = taskRepository.getTaskById(taskId)
                 if (originalTaskEntity != null) {
                     // Only update the text. Keep existing isDone and completedOrReopenedTimestamp
                     val updatedTaskEntity = originalTaskEntity.copy(title = trimmedText)
-                    repository.update(updatedTaskEntity)
+                    taskRepository.update(updatedTaskEntity)
                     // You'll need to decide how to map Task to Note for syncing
                     val updatedNote = Note(
                         id = updatedTaskEntity.id,
