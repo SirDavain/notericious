@@ -71,7 +71,7 @@ fun ToDoListScreen(
                         decorationBox = { innerTextField ->
                             if (title.isEmpty()) {
                                 Text(
-                                    text = "Title of this list",
+                                    text = "Untitled List",
                                     style = LocalTextStyle.current.copy(
                                         fontSize = 20.sp,
                                         fontWeight = FontWeight.Bold,

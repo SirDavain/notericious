@@ -76,7 +76,7 @@ open class MainScreenViewModel @Inject constructor(
     }
 
     open fun createNewToDoList() {
-        val text = newTaskText.trim().ifBlank { "Untitled List" }
+        val text = newTaskText.trim()
         viewModelScope.launch {
             val currentTime = System.currentTimeMillis()
             val taskToInsert = Task(

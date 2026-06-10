@@ -19,9 +19,6 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Add the new column, allowing NULLs initially, or provide a default
                 db.execSQL("ALTER TABLE tasks ADD COLUMN completedOrReopenedTimestamp INTEGER")
-                // Optionally, you could try to populate it for existing tasks based on isDone,
-                // but for new logic, it might be fine to start fresh or use current time for existing done tasks.
-                // For simplicity, we'll let new interactions populate it.
             }
         }
         // Singleton prevents multiple instances of database opening at the same time.

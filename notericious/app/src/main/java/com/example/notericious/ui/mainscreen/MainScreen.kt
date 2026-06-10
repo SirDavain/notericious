@@ -79,7 +79,7 @@ fun MainScreen(
         onTaskLongClick = { task ->
             viewModel.toggleSelection(task.id)
         },
-        onNewListClick = { 
+        onNewListClick = {
             viewModel.createNewToDoList()
         },
         onNewNoteClick = { 
